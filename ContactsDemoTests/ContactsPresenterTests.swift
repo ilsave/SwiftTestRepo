@@ -25,6 +25,102 @@ class ContactsPresenterTests: XCTestCase {
         // Use XCTAssert and related functions to verify your tests produce the correct results.
     }
 
+ 
+    func testViewOpened() throws {
+        let presenter = ContactsPresenter.init(
+            contactsRepository: MockGetContactsRepository(),
+            callHistoryRepository: MockGetCallHistoryRepository())
+        let view:ContactsView!
+        view = MockView()
+        presenter.view = view
+        
+        
+
+        XCTAssertNoThrow(presenter.viewOpened())
+    }
+    
+    func testViewOpenedWithCrash() throws {
+        let presenterCrash = ContactsPresenter.init(
+            contactsRepository: MockGetContactsRepositoryWithCrashes(),
+            callHistoryRepository: MockGetCallHistoryRepositoryWithCrashes())
+        let view:ContactsView!
+        view = MockView()
+        presenterCrash.view = view
+        
+        XCTAssertNoThrow(presenterCrash.viewOpened())
+    }
+  
+    
+    func testNewContactAdded() throws {
+        let presenter = ContactsPresenter.init(
+            contactsRepository: MockGetContactsRepository(),
+            callHistoryRepository: MockGetCallHistoryRepository())
+        
+        let view:ContactsView!
+        view = MockView()
+        presenter.view = view
+        let contact = ContactsData.init(firstName: "Ilya", lastName: "Gushchin", phone: "920321")
+        
+     
+        XCTAssertNoThrow(presenter.newContactAdded(contact), "Assert no throw on add new contact method")
+    }
+    
+    func testNewContactAddedWithCrash(){
+        let presenterCrash = ContactsPresenter.init(
+            contactsRepository: MockGetContactsRepositoryWithCrashes(),
+            callHistoryRepository: MockGetCallHistoryRepositoryWithCrashes())
+        let view:ContactsView!
+        view = MockView()
+        presenterCrash.view = view
+        let contact = ContactsData.init(firstName: "Ilya", lastName: "Gushchin", phone: "920321")
+        
+        XCTAssertNoThrow(presenterCrash.newContactAdded(contact), "Assert no throw on add new contact method")
+    }
+
+    func testMakeCall() throws {
+        let presenter = ContactsPresenter.init(
+            contactsRepository: MockGetContactsRepository(),
+            callHistoryRepository: MockGetCallHistoryRepository())
+        let contact = Contact.init(recordId: "id", firstName: "firstname", lastName: "lastName", phone: "89203321")
+        let view:ContactsView!
+        view = MockView()
+        presenter.view = view
+        XCTAssertNoThrow(presenter.makeCall(to: contact), "Assert no throw on make call")
+    }
+
+    func testMakeCallWithCrash(){
+        let presenterCrash = ContactsPresenter.init(
+            contactsRepository: MockGetContactsRepositoryWithCrashes(),
+            callHistoryRepository: MockGetCallHistoryRepositoryWithCrashes())
+        let view:ContactsView!
+        view = MockView()
+        presenterCrash.view = view
+        let contact = Contact.init(recordId: "id", firstName: "firstname", lastName: "lastName", phone: "89203321")
+        XCTAssertNoThrow(presenterCrash.makeCall(to: contact), "Assert no throw on make call")
+    }
+    
+    func testContactPressed() throws {
+        let presenter = ContactsPresenter.init(
+            contactsRepository: MockGetContactsRepository(),
+            callHistoryRepository: MockGetCallHistoryRepository())
+        let contact = Contact.init(recordId: "id", firstName: "firstname", lastName: "lastName", phone: "89203321")
+        let view:ContactsView!
+        view = MockView()
+        presenter.view = view
+        XCTAssertNoThrow(presenter.contactPressed(contact), "Assert no throw on contact pressed")
+    }
+    
+    func testContactPressedWithCrash() throws {
+        let presenterCrash = ContactsPresenter.init(
+            contactsRepository: MockGetContactsRepositoryWithCrashes(),
+            callHistoryRepository: MockGetCallHistoryRepositoryWithCrashes())
+        let view:ContactsView!
+        view = MockView()
+        presenterCrash.view = view
+        let contact = Contact.init(recordId: "id", firstName: "firstname", lastName: "lastName", phone: "89203321")
+        XCTAssertNoThrow(presenterCrash.contactPressed(contact), "Assert no throw on contact pressed")
+    }
+    
     func testPerformanceExample() throws {
         // This is an example of a performance test case.
         self.measure {
@@ -33,3 +129,84 @@ class ContactsPresenterTests: XCTestCase {
     }
 
 }
+enum TestError: Error {
+    case runtimeError(String)
+}
+
+
+class MockGetContactsRepositoryWithCrashes: ContactsRepository {
+    func getContacts() throws -> [Contact] {
+        throw TestError.runtimeError("failure on getting contacts")
+    }
+    
+    func add(contact: ContactsData) throws {
+        throw TestError.runtimeError("failure on getting contacts")
+    }
+    
+    func delete(contact: Contact) throws {
+        throw TestError.runtimeError("failure on getting contacts")
+    }
+    
+    func update(contact: Contact) throws {
+        throw TestError.runtimeError("failure on getting contacts")
+    }
+}
+
+
+class MockGetContactsRepository: ContactsRepository {
+    func getContacts() throws -> [Contact] {
+        return []
+    }
+    
+    func add(contact: ContactsData) throws {
+        print("add method")
+    }
+    
+    func delete(contact: Contact) throws {
+        print("delete method")
+    }
+    
+    func update(contact: Contact) throws {
+        print("update method")
+    }
+}
+
+class MockGetCallHistoryRepository: CallHistoryRepository{
+    func getHistory() throws -> [CallRecord] {
+        return []
+    }
+    
+    func add(record: CallRecord) throws {
+        print("add method")
+    }
+}
+
+class MockGetCallHistoryRepositoryWithCrashes: CallHistoryRepository{
+    func getHistory() throws -> [CallRecord] {
+        throw TestError.runtimeError("failure on getting contacts")
+    }
+    
+    func add(record: CallRecord) throws {
+        throw TestError.runtimeError("failure on getting contacts")
+    }
+}
+
+class MockView: ContactsView  {
+    func showContacts(_ contacts: [Contact]) {
+        print("show contacts")
+    }
+    
+    func showError(_ error: Error) {
+        print("show error")
+    }
+    
+    func showProgress() {
+        print("show progress")
+    }
+    
+    func hideProgress() {
+        print("hide progress")
+    }
+}
+
+
